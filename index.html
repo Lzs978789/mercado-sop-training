@@ -132,7 +132,6 @@ body:not(.can-edit) .media-slot:hover{border-color:#d1d5db;background:#fff}
 </div></div>
 <div class="float-menu no-print"><button onclick="location.reload()" title="回到首页并刷新">🏠</button><button onclick="handleSaveButton()" title="编辑权限">✎</button></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const $$=s=>document.querySelector(s), $$$=s=>Array.from(document.querySelectorAll(s));
 const STORAGE_KEY='ml_sop_dynamic_v1';
@@ -145,7 +144,6 @@ const DEFAULT_MEDIA_SLOTS=2;
 const MAX_MEDIA_SLOTS=10;
 
 const hasSupabaseConfig = /^https:\/\/.+\.supabase\.co$/.test(SUPABASE_URL) && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
-const sopDb = hasSupabaseConfig && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let cloudSaveTimer = null;
 let cloudLoading = false;
 let canEdit = sessionStorage.getItem('sop_can_edit') === '1';
@@ -173,6 +171,34 @@ function saveAll(){
 
 function saveLocalOnly(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(collectSopData()));
+}
+
+function supabaseHeaders(extra={}){
+  return {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    ...extra
+  };
+}
+
+async function supabaseRequest(path, options={}, timeoutMs=15000){
+  if(!hasSupabaseConfig) throw new Error('Supabase is not configured');
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), timeoutMs);
+  try{
+    const response = await fetch(`${SUPABASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: supabaseHeaders(options.headers || {})
+    });
+    if(!response.ok){
+      const detail = await response.text().catch(()=>response.statusText);
+      throw new Error(detail || response.statusText);
+    }
+    return response;
+  }finally{
+    clearTimeout(timer);
+  }
 }
 
 function loadAll(){
@@ -262,13 +288,13 @@ function applySopData(data){
 }
 
 function queueCloudSave(data){
-  if(!sopDb || cloudLoading) return;
+  if(!hasSupabaseConfig || cloudLoading) return;
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(()=>saveCloudData(data || collectSopData()), 900);
 }
 
 async function saveCloudData(data){
-  if(!sopDb || !data?.html_sidebar || !data?.html_main) return;
+  if(!hasSupabaseConfig || !data?.html_sidebar || !data?.html_main) return false;
   const payload = {
     project_key: SUPABASE_PROJECT_KEY,
     html_sidebar: data.html_sidebar,
@@ -277,29 +303,47 @@ async function saveCloudData(data){
     active_row: data.activeRow || null,
     payload: { saved_from: location.href, saved_at: new Date().toISOString() }
   };
-  const { error } = await sopDb.from('sop_documents').upsert(payload, { onConflict: 'project_key' });
-  if(error) console.warn('Supabase save failed:', error.message);
+  try{
+    await supabaseRequest('/rest/v1/sop_documents?on_conflict=project_key', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+    return true;
+  }catch(error){
+    console.warn('Supabase save failed:', error.message);
+    return false;
+  }
 }
 
 async function loadCloudData(){
-  if(!sopDb) return false;
+  if(!hasSupabaseConfig) return false;
   cloudLoading = true;
-  const { data, error } = await sopDb
-    .from('sop_documents')
-    .select('html_sidebar,html_main,active_panel,active_row,payload,updated_at')
-    .eq('project_key', SUPABASE_PROJECT_KEY)
-    .maybeSingle();
-  cloudLoading = false;
-  if(error){ console.warn('Supabase load failed:', error.message); return false; }
-  if(!data) return false;
-  const ok = applySopData({
-    html_sidebar: data.html_sidebar,
-    html_main: data.html_main,
-    activePanel: data.active_panel,
-    activeRow: data.active_row
-  });
-  if(ok) localStorage.setItem(STORAGE_KEY, JSON.stringify(collectSopData()));
-  return ok;
+  try{
+    const response = await supabaseRequest(`/rest/v1/sop_documents?project_key=eq.${encodeURIComponent(SUPABASE_PROJECT_KEY)}&select=html_sidebar,html_main,active_panel,active_row,payload,updated_at&limit=1`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' }
+    }, 10000);
+    const rows = await response.json();
+    const data = Array.isArray(rows) ? rows[0] : null;
+    if(!data) return false;
+    const ok = applySopData({
+      html_sidebar: data.html_sidebar,
+      html_main: data.html_main,
+      activePanel: data.active_panel,
+      activeRow: data.active_row
+    });
+    if(ok) localStorage.setItem(STORAGE_KEY, JSON.stringify(collectSopData()));
+    return ok;
+  }catch(error){
+    console.warn('Supabase load failed:', error.message);
+    return false;
+  }finally{
+    cloudLoading = false;
+  }
 }
 
 function safeFileName(name){
@@ -316,21 +360,31 @@ function readFileAsDataUrl(file){
 }
 
 async function uploadImageToCloud(box, file){
-  if(!sopDb) return null;
+  if(!hasSupabaseConfig) return null;
   const ext = safeFileName(file.name).split('.').pop() || 'png';
   const path = `${SUPABASE_PROJECT_KEY}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { data, error } = await sopDb.storage
-    .from(SUPABASE_BUCKET)
-    .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || 'image/png' });
-  if(error) throw error;
-
-  const publicData = sopDb.storage.from(SUPABASE_BUCKET).getPublicUrl(data.path).data;
-  const publicUrl = publicData.publicUrl;
+  const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+  await supabaseRequest(`/storage/v1/object/${SUPABASE_BUCKET}/${encodedPath}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': file.type || 'image/png',
+      'Cache-Control': '3600',
+      'x-upsert': 'false'
+    },
+    body: file
+  }, 30000);
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${encodedPath}`;
   const row = box.closest('.section-row');
   const panel = box.closest('.content-card');
-  await sopDb.from('sop_media').insert({
+  await supabaseRequest('/rest/v1/sop_media', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify({
     project_key: SUPABASE_PROJECT_KEY,
-    file_path: data.path,
+    file_path: path,
     public_url: publicUrl,
     file_name: file.name,
     content_type: file.type,
@@ -339,7 +393,8 @@ async function uploadImageToCloud(box, file){
     row_id: row?.id || null,
     title: row?.querySelector('.item-title')?.innerText || panel?.querySelector('h2')?.innerText || null,
     note: row?.querySelector('.text-box .editable:not(.item-title)')?.innerText || null
-  });
+    })
+  }).catch(error=>console.warn('Supabase media record failed:', error.message));
   return publicUrl;
 }
 
@@ -481,7 +536,7 @@ async function forceCloudSync(){
   if(!canEdit && !requestEditAccess()) return;
   const data = collectSopData();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  await saveCloudData(data);
+  return await saveCloudData(data);
 }
 
 async function handleSaveButton(){
@@ -489,7 +544,8 @@ async function handleSaveButton(){
     requestEditAccess();
     return;
   }
-  alert('已开启编辑权限，修改后会自动同步。');
+  const ok = await forceCloudSync();
+  alert(ok ? '已同步到云端，别人打开链接可以看到最新内容。' : '本地已保存，但云端同步失败。请检查 Supabase SQL 权限。');
 }
 
 // 生成一行新步骤的 HTML
@@ -798,12 +854,15 @@ function bindAllEvents() {
     applyEditMode();
 }
 async function initDefault() {
-    const loadedFromCloud = await loadCloudData();
-    if(!loadedFromCloud && !loadAll()) {
-        bindAllEvents(); // 首次绑定
-    }
+    loadAll();
     trimInitialEmptyMediaSlots();
     bindAllEvents();
+    loadCloudData().then(loadedFromCloud=>{
+      if(loadedFromCloud){
+        trimInitialEmptyMediaSlots();
+        bindAllEvents();
+      }
+    });
 }
 
 function mediaPlaceholderHtml(index){
