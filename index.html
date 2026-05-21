@@ -124,21 +124,38 @@ button{border:none;background:#0f766e;color:#fff;padding:10px 14px;border-radius
 </div></div>
 <div class="float-menu no-print"><button onclick="location.reload()" title="回到首页并刷新">🏠</button><button onclick="saveAll()" title="手动保存数据">💾</button></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const $$=s=>document.querySelector(s), $$$=s=>Array.from(document.querySelectorAll(s));
 const STORAGE_KEY='ml_sop_dynamic_v1';
+const SUPABASE_URL='https://begfyschfspuxypqppnv.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_BSuJWnuxhGHJt0qwSY4d8g_vjSIUwTM';
+const SUPABASE_BUCKET='sop-media';
+const SUPABASE_PROJECT_KEY='mercado-sop-training-index';
+
+const hasSupabaseConfig = /^https:\/\/.+\.supabase\.co$/.test(SUPABASE_URL) && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+const sopDb = hasSupabaseConfig && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let cloudSaveTimer = null;
+let cloudLoading = false;
 
 let globalGroupCount = 0;
 let globalItemCount = 0;
 
-function saveAll(){
+function collectSopData(){
+  $$$('.upload img').forEach((img,i)=>{ img.setAttribute('data-id', 'img'+i); });
   const data={ html_sidebar: $$('#nav-container').innerHTML, html_main: $$('#panel-container').innerHTML };
-  $$$('.upload img').forEach((img,i)=>{ data['img'+i]=img.src; img.setAttribute('data-id', 'img'+i); });
+  $$$('.upload img').forEach((img,i)=>{ data['img'+i]=img.src; });
   const activePanel=$$('.content-card.active'); 
   const activeRow=$$('.section-row.active');
   if(activePanel) data.activePanel=activePanel.id;
   if(activeRow) data.activeRow=activeRow.id;
+  return data;
+}
+
+function saveAll(){
+  const data = collectSopData();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  queueCloudSave(data);
 }
 
 function loadAll(){
@@ -188,6 +205,143 @@ function loadAll(){
       return true;
   }
   return false;
+}
+
+function applySopData(data){
+  if(!data || !data.html_sidebar || !data.html_main) return false;
+  $$('#nav-container').innerHTML = data.html_sidebar;
+  $$('#panel-container').innerHTML = data.html_main;
+  bindAllEvents();
+
+  if(data.activePanel && data.activePanel !== 'panel-intro'){
+     const panelKey = data.activePanel.replace('panel-', '');
+     const rowId = data.activeRow;
+
+     $$$('.content-card').forEach(p=>p.classList.remove('active'));
+     const panel = document.getElementById(data.activePanel);
+     if(panel) panel.classList.add('active');
+
+     const groupHeader=$$('.nav-header[data-panel="'+panelKey+'"]');
+     if(groupHeader) {
+         groupHeader.closest('.nav-group')?.classList.remove('collapsed');
+         $$$('.nav-header').forEach(el=>el.classList.remove('active'));
+         groupHeader.classList.add('active');
+     }
+
+     if(rowId) {
+         $$$('.section-row').forEach(r=>r.classList.remove('active'));
+         $$$('.nav-item').forEach(el=>el.classList.remove('active'));
+         const row = document.getElementById(rowId);
+         if(row) row.classList.add('active');
+
+         const navItem = $$('.nav-item[data-row="'+rowId+'"]');
+         if(navItem) navItem.classList.add('active');
+     } else {
+         const firstRow = panel?.querySelector('.section-row');
+         if(firstRow) firstRow.classList.add('active');
+     }
+  }
+  return true;
+}
+
+function queueCloudSave(data){
+  if(!sopDb || cloudLoading) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(()=>saveCloudData(data || collectSopData()), 900);
+}
+
+async function saveCloudData(data){
+  if(!sopDb || !data?.html_sidebar || !data?.html_main) return;
+  const payload = {
+    project_key: SUPABASE_PROJECT_KEY,
+    html_sidebar: data.html_sidebar,
+    html_main: data.html_main,
+    active_panel: data.activePanel || null,
+    active_row: data.activeRow || null,
+    payload: { saved_from: location.href, saved_at: new Date().toISOString() }
+  };
+  const { error } = await sopDb.from('sop_documents').upsert(payload, { onConflict: 'project_key' });
+  if(error) console.warn('Supabase save failed:', error.message);
+}
+
+async function loadCloudData(){
+  if(!sopDb) return false;
+  cloudLoading = true;
+  const { data, error } = await sopDb
+    .from('sop_documents')
+    .select('html_sidebar,html_main,active_panel,active_row,payload,updated_at')
+    .eq('project_key', SUPABASE_PROJECT_KEY)
+    .maybeSingle();
+  cloudLoading = false;
+  if(error){ console.warn('Supabase load failed:', error.message); return false; }
+  if(!data) return false;
+  const ok = applySopData({
+    html_sidebar: data.html_sidebar,
+    html_main: data.html_main,
+    activePanel: data.active_panel,
+    activeRow: data.active_row
+  });
+  if(ok) localStorage.setItem(STORAGE_KEY, JSON.stringify(collectSopData()));
+  return ok;
+}
+
+function safeFileName(name){
+  return (name || 'image').toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'image';
+}
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ev=>resolve(ev.target.result);
+    reader.onerror = ()=>reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadImageToCloud(box, file){
+  if(!sopDb) return null;
+  const ext = safeFileName(file.name).split('.').pop() || 'png';
+  const path = `${SUPABASE_PROJECT_KEY}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { data, error } = await sopDb.storage
+    .from(SUPABASE_BUCKET)
+    .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || 'image/png' });
+  if(error) throw error;
+
+  const publicData = sopDb.storage.from(SUPABASE_BUCKET).getPublicUrl(data.path).data;
+  const publicUrl = publicData.publicUrl;
+  const row = box.closest('.section-row');
+  const panel = box.closest('.content-card');
+  await sopDb.from('sop_media').insert({
+    project_key: SUPABASE_PROJECT_KEY,
+    file_path: data.path,
+    public_url: publicUrl,
+    file_name: file.name,
+    content_type: file.type,
+    file_size: file.size,
+    panel_id: panel?.id || null,
+    row_id: row?.id || null,
+    title: row?.querySelector('.item-title')?.innerText || panel?.querySelector('h2')?.innerText || null,
+    note: row?.querySelector('.text-box .editable:not(.item-title)')?.innerText || null
+  });
+  return publicUrl;
+}
+
+async function handleImageFile(box, file){
+  if(!box || !file) return;
+  box.dataset.uploading = '1';
+  try{
+    const src = await uploadImageToCloud(box, file) || await readFileAsDataUrl(file);
+    setImage(box, src);
+    saveAll();
+  }catch(error){
+    console.warn('Image upload failed, using local fallback:', error.message);
+    const src = await readFileAsDataUrl(file);
+    setImage(box, src);
+    saveAll();
+    alert('图片已先保存到本地浏览器，云端上传失败。请检查 Supabase 配置和 Storage 权限。');
+  }finally{
+    delete box.dataset.uploading;
+  }
 }
 
 function setImage(box,src){ box.innerHTML='<img src="'+src+'" alt="uploaded" style="width:100%;height:100%;object-fit:contain;border-radius:14px" />'; }
@@ -470,15 +624,17 @@ function bindAllEvents() {
     });
 
     $$$('.upload').forEach(box=>{
+      if(box.classList.contains('media-slot')) return;
       const input=box.querySelector('input[type="file"]');
       box.addEventListener('click',e=>{ if(e.target!==input) input.click(); });
-      input.addEventListener('change',e=>{ const file=e.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=ev=>{ setImage(box,ev.target.result); saveAll(); }; reader.readAsDataURL(file); });
+      input.addEventListener('change',e=>{ const file=e.target.files[0]; if(!file) return; handleImageFile(box,file); });
     });
 
     $$$('[contenteditable="true"]').forEach(el=>el.addEventListener('input',saveAll));
 }
-function initDefault() {
-    if(!loadAll()) {
+async function initDefault() {
+    const loadedFromCloud = await loadCloudData();
+    if(!loadedFromCloud && !loadAll()) {
         bindAllEvents(); // 首次绑定
     }
 }
@@ -609,9 +765,7 @@ function bindUploadEvents(){
       input.addEventListener('change',e=>{
         const file = e.target.files && e.target.files[0];
         if(!file) return;
-        const reader = new FileReader();
-        reader.onload = ev=>{ setImage(slot, ev.target.result); if(typeof saveAll === 'function'){ saveAll(); } };
-        reader.readAsDataURL(file);
+        handleImageFile(slot,file);
       });
     }
   });
@@ -708,8 +862,8 @@ function setupGroupDeleteButton(groupIndex){
   };
 
   var _initDefault = initDefault;
-  initDefault = function(){
-    _initDefault();
+  initDefault = async function(){
+    await _initDefault();
     for(var i=0;i<30;i++){
       setupGroupDeleteButton(i);
     }
@@ -751,8 +905,8 @@ function setupSidebarGroupDelete(groupIndex){
     return idx;
   };
   var _initDefault = initDefault;
-  initDefault = function(){
-    _initDefault();
+  initDefault = async function(){
+    await _initDefault();
     for(var i=0;i<30;i++){
       setupSidebarGroupDelete(i);
     }
@@ -799,8 +953,8 @@ function enableDoubleClickEdit(){
     enableDoubleClickEdit();
   };
   var _initDefault = initDefault;
-  initDefault = function(){
-    _initDefault();
+  initDefault = async function(){
+    await _initDefault();
     enableDoubleClickEdit();
   };
 })();
