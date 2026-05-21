@@ -398,6 +398,28 @@ async function uploadImageToCloud(box, file){
   return publicUrl;
 }
 
+async function dataUrlToFile(src, index){
+  const response = await fetch(src);
+  const blob = await response.blob();
+  const ext = (blob.type && blob.type.split('/')[1]) || 'png';
+  return new File([blob], `local-image-${index}.${ext}`, { type: blob.type || 'image/png' });
+}
+
+async function syncLocalImagesToCloud(){
+  if(!hasSupabaseConfig) return;
+  const images = Array.from(document.querySelectorAll('.upload img')).filter(img=>img.src.startsWith('data:'));
+  for(const [index, img] of images.entries()){
+    try{
+      const box = img.closest('.upload');
+      const file = await dataUrlToFile(img.src, index + 1);
+      const publicUrl = await uploadImageToCloud(box, file);
+      if(publicUrl) img.src = publicUrl;
+    }catch(error){
+      console.warn('Local image sync failed:', error.message);
+    }
+  }
+}
+
 async function handleImageFile(box, file){
   if(!canEdit){ requestEditAccess(); return; }
   if(!box || !file) return;
@@ -534,6 +556,7 @@ function trimInitialEmptyMediaSlots(){
 
 async function forceCloudSync(){
   if(!canEdit && !requestEditAccess()) return;
+  await syncLocalImagesToCloud();
   const data = collectSopData();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   return await saveCloudData(data);
