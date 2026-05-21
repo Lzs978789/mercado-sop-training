@@ -558,6 +558,16 @@ function bindAllEvents() {
     $$('#nav-container').parentNode.replaceChild(newNav, $$('#nav-container'));
     const newPanel = $$('#panel-container').cloneNode(true);
     $$('#panel-container').parentNode.replaceChild(newPanel, $$('#panel-container'));
+    newPanel.querySelectorAll('[data-bound],[data-upload-bound],[data-dbl-bound]').forEach(el=>{
+      delete el.dataset.bound;
+      delete el.dataset.uploadBound;
+      delete el.dataset.dblBound;
+    });
+    newNav.querySelectorAll('[data-bound],[data-upload-bound],[data-dbl-bound]').forEach(el=>{
+      delete el.dataset.bound;
+      delete el.dataset.uploadBound;
+      delete el.dataset.dblBound;
+    });
 
     // 重新绑定交互
     $$$('.nav-header').forEach(header=>{
