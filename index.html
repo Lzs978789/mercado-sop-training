@@ -87,12 +87,20 @@ button{border:none;background:#0f766e;color:#fff;padding:10px 14px;border-radius
 .media-grid{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:16px}
 .media-slot{position:relative;min-height:230px;display:flex;align-items:center;justify-content:center;text-align:center;color:#6b7280;cursor:pointer;padding:12px;background:#fff;overflow:hidden}
 .media-slot img{width:100%;height:100%;object-fit:contain;border-radius:14px;background:#fff}
+.media-remove{position:absolute;top:10px;left:10px;z-index:2;width:28px;height:28px;border:none;border-radius:999px;background:rgba(239,68,68,.88);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18);font-size:18px;line-height:1}
+.can-edit .media-slot:hover .media-remove{display:flex}
 .media-placeholder{line-height:1.5;font-size:15px}
 .media-hint{display:block;margin-top:8px;font-size:12px;color:#9ca3af}
 .media-slot.has-image{border-style:solid;border-color:#fca5a5;background:#fff}
 .media-slot:hover{border-color:#0f766e;background:#f8fffd}
 .media-add{border:2px dashed #99f6e4;border-radius:16px;background:#ecfeff;color:#0f766e;font-weight:700;min-height:230px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .media-add:hover{background:#cffafe}
+body:not(.can-edit) .no-edit{display:none!important}
+body:not(.can-edit) [contenteditable="true"]{cursor:default}
+body:not(.can-edit) .editable{cursor:default}
+body:not(.can-edit) .editable:hover{border-color:transparent;background:transparent}
+body:not(.can-edit) .media-slot{cursor:default}
+body:not(.can-edit) .media-slot:hover{border-color:#d1d5db;background:#fff}
 .zoom-btn{position:absolute;top:10px;right:10px;z-index:2;width:36px;height:36px;border:none;border-radius:999px;background:rgba(17,24,39,.72);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18)}
 .media-slot.has-image .zoom-btn{display:flex}
 #image-preview-modal{position:fixed;inset:0;background:rgba(15,23,42,.82);display:none;align-items:center;justify-content:center;z-index:9999;padding:24px}
@@ -110,11 +118,11 @@ button{border:none;background:#0f766e;color:#fff;padding:10px 14px;border-radius
 </style>
 </head>
 <body>
-<div class="top"><div class="container" style="display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap"><div><h1 style="margin:0 0 8px">美客多巴西站运营培训SOP（支持无限增删）</h1><div>随时新增大纲、新增页面页卡，且左侧右侧标题完全同步。</div></div><div class="no-print"><button onclick="saveAll()">手动保存</button><button onclick="window.print()" style="background:#fff;color:#111827;border:1px solid #d1d5db;box-shadow:none">打印 / 导出PDF</button></div></div></div>
+<div class="top"><div class="container" style="display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap"><div><h1 style="margin:0 0 8px">美客多巴西站运营培训SOP（支持无限增删）</h1><div>随时新增大纲、新增页面页卡，且左侧右侧标题完全同步。</div></div><div class="no-print"><button onclick="handleSaveButton()">编辑权限</button><button onclick="window.print()" style="background:#fff;color:#111827;border:1px solid #d1d5db;box-shadow:none">打印 / 导出PDF</button></div></div></div>
 <div class="container"><div class="main">
     <aside class="sidebar">
         <div class="no-print" style="margin-bottom:12px">
-            <button class="btn-outline" style="margin-top:0;margin-bottom:10px" onclick="addGroup()">+ 新增一个大纲框</button>
+            <button class="btn-outline no-edit" style="margin-top:0;margin-bottom:10px" onclick="addGroup()">+ 新增一个大纲框</button>
         </div>
         <div id="nav-container"><div class="nav-group"><div class="nav-header active" data-panel="intro"><span class="toggle" style="opacity:0"></span><div class="nav-title-text">SOP与说明</div></div></div><div class="nav-group collapsed" id="nav-group-0"><div class="nav-header" data-panel="group0"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('0', this)">常用的产品页面介绍</div><div class="del-btn no-print" onclick="deleteGroup('0', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-0"><div class="nav-item" data-panel="group0" data-row="item-0-0" id="nav-item-0-0"><div class="nav-item-text editable title-target-0-0" contenteditable="true" oninput="syncTitleReverse('0', '0', this)">1.产品概览</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('0', '0', event)">✕</div></div><div class="nav-item" data-panel="group0" data-row="item-0-1" id="nav-item-0-1"><div class="nav-item-text editable title-target-0-1" contenteditable="true" oninput="syncTitleReverse('0', '1', this)">2.产品客服页面</div><div class="del-btn no-print" onclick="deleteItem('0', '1', event)">✕</div></div><div class="nav-item" data-panel="group0" data-row="item-0-2" id="nav-item-0-2"><div class="nav-item-text editable title-target-0-2" contenteditable="true" oninput="syncTitleReverse('0', '2', this)">3.消息页面</div><div class="del-btn no-print" onclick="deleteItem('0', '2', event)">✕</div></div><div class="nav-item" data-panel="group0" data-row="item-0-3" id="nav-item-0-3"><div class="nav-item-text editable title-target-0-3" contenteditable="true" oninput="syncTitleReverse('0', '3', this)">4.订单页面</div><div class="del-btn no-print" onclick="deleteItem('0', '3', event)">✕</div></div><div class="nav-item" data-panel="group0" data-row="item-0-4" id="nav-item-0-4"><div class="nav-item-text editable title-target-0-4" contenteditable="true" oninput="syncTitleReverse('0', '4', this)">5.产品listing页面</div><div class="del-btn no-print" onclick="deleteItem('0', '4', event)">✕</div></div><div class="nav-item" data-panel="group0" data-row="item-0-5" id="nav-item-0-5"><div class="nav-item-text editable title-target-0-5" contenteditable="true" oninput="syncTitleReverse('0', '5', this)">6.产品活动页面</div><div class="del-btn no-print" onclick="deleteItem('0', '5', event)">✕</div></div><div class="nav-item" data-panel="group0" data-row="item-0-6" id="nav-item-0-6"><div class="nav-item-text editable title-target-0-6" contenteditable="true" oninput="syncTitleReverse('0', '6', this)">7.官方客服页面</div><div class="del-btn no-print" onclick="deleteItem('0', '6', event)">✕</div></div><div class="nav-item" data-panel="group0" data-row="item-0-7" id="nav-item-0-7"><div class="nav-item-text editable title-target-0-7" contenteditable="true" oninput="syncTitleReverse('0', '7', this)">8.产品指标页面</div><div class="del-btn no-print" onclick="deleteItem('0', '7', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('0')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-1"><div class="nav-header" data-panel="group1"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('1', this)">产品上架</div><div class="del-btn no-print" onclick="deleteGroup('1', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-1"><div class="nav-item" data-panel="group1" data-row="item-1-0" id="nav-item-1-0"><div class="nav-item-text editable title-target-1-0" contenteditable="true" oninput="syncTitleReverse('1', '0', this)">1.产品站内基础上架</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('1', '0', event)">✕</div></div><div class="nav-item" data-panel="group1" data-row="item-1-1" id="nav-item-1-1"><div class="nav-item-text editable title-target-1-1" contenteditable="true" oninput="syncTitleReverse('1', '1', this)">2.upseller产品上架</div><div class="del-btn no-print" onclick="deleteItem('1', '1', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('1')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-2"><div class="nav-header" data-panel="group2"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('2', this)">价格校准</div><div class="del-btn no-print" onclick="deleteGroup('2', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-2"><div class="nav-item" data-panel="group2" data-row="item-2-0" id="nav-item-2-0"><div class="nav-item-text editable title-target-2-0" contenteditable="true" oninput="syncTitleReverse('2', '0', this)">1.优质价格</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('2', '0', event)">✕</div></div><div class="nav-item" data-panel="group2" data-row="item-2-1" id="nav-item-2-1"><div class="nav-item-text editable title-target-2-1" contenteditable="true" oninput="syncTitleReverse('2', '1', this)">2.经典价格</div><div class="del-btn no-print" onclick="deleteItem('2', '1', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('2')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-3"><div class="nav-header" data-panel="group3"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('3', this)">普通链接优化</div><div class="del-btn no-print" onclick="deleteGroup('3', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-3"><div class="nav-item" data-panel="group3" data-row="item-3-0" id="nav-item-3-0"><div class="nav-item-text editable title-target-3-0" contenteditable="true" oninput="syncTitleReverse('3', '0', this)">1.标题 60字符</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('3', '0', event)">✕</div></div><div class="nav-item" data-panel="group3" data-row="item-3-1" id="nav-item-3-1"><div class="nav-item-text editable title-target-3-1" contenteditable="true" oninput="syncTitleReverse('3', '1', this)">2.图片：主图+介绍图</div><div class="del-btn no-print" onclick="deleteItem('3', '1', event)">✕</div></div><div class="nav-item" data-panel="group3" data-row="item-3-2" id="nav-item-3-2"><div class="nav-item-text editable title-target-3-2" contenteditable="true" oninput="syncTitleReverse('3', '2', this)">3.关键词 modele</div><div class="del-btn no-print" onclick="deleteItem('3', '2', event)">✕</div></div><div class="nav-item" data-panel="group3" data-row="item-3-3" id="nav-item-3-3"><div class="nav-item-text editable title-target-3-3" contenteditable="true" oninput="syncTitleReverse('3', '3', this)">4.参数</div><div class="del-btn no-print" onclick="deleteItem('3', '3', event)">✕</div></div><div class="nav-item" data-panel="group3" data-row="item-3-4" id="nav-item-3-4"><div class="nav-item-text editable title-target-3-4" contenteditable="true" oninput="syncTitleReverse('3', '4', this)">5.简介</div><div class="del-btn no-print" onclick="deleteItem('3', '4', event)">✕</div></div><div class="nav-item" data-panel="group3" data-row="item-3-5" id="nav-item-3-5"><div class="nav-item-text editable title-target-3-5" contenteditable="true" oninput="syncTitleReverse('3', '5', this)">6.tob价格</div><div class="del-btn no-print" onclick="deleteItem('3', '5', event)">✕</div></div><div class="nav-item" data-panel="group3" data-row="item-3-6" id="nav-item-3-6"><div class="nav-item-text editable title-target-3-6" contenteditable="true" oninput="syncTitleReverse('3', '6', this)">7.视频</div><div class="del-btn no-print" onclick="deleteItem('3', '6', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('3')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-4"><div class="nav-header" data-panel="group4"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('4', this)">跟卖链接优化</div><div class="del-btn no-print" onclick="deleteGroup('4', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-4"><div class="nav-item" data-panel="group4" data-row="item-4-0" id="nav-item-4-0"><div class="nav-item-text editable title-target-4-0" contenteditable="true" oninput="syncTitleReverse('4', '0', this)">1.标题 200字符</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('4', '0', event)">✕</div></div><div class="nav-item" data-panel="group4" data-row="item-4-1" id="nav-item-4-1"><div class="nav-item-text editable title-target-4-1" contenteditable="true" oninput="syncTitleReverse('4', '1', this)">2.图片：主图+介绍图+详情页图片+视频图</div><div class="del-btn no-print" onclick="deleteItem('4', '1', event)">✕</div></div><div class="nav-item" data-panel="group4" data-row="item-4-2" id="nav-item-4-2"><div class="nav-item-text editable title-target-4-2" contenteditable="true" oninput="syncTitleReverse('4', '2', this)">3.关键词 modele</div><div class="del-btn no-print" onclick="deleteItem('4', '2', event)">✕</div></div><div class="nav-item" data-panel="group4" data-row="item-4-3" id="nav-item-4-3"><div class="nav-item-text editable title-target-4-3" contenteditable="true" oninput="syncTitleReverse('4', '3', this)">4.参数</div><div class="del-btn no-print" onclick="deleteItem('4', '3', event)">✕</div></div><div class="nav-item" data-panel="group4" data-row="item-4-4" id="nav-item-4-4"><div class="nav-item-text editable title-target-4-4" contenteditable="true" oninput="syncTitleReverse('4', '4', this)">5.简介</div><div class="del-btn no-print" onclick="deleteItem('4', '4', event)">✕</div></div><div class="nav-item" data-panel="group4" data-row="item-4-5" id="nav-item-4-5"><div class="nav-item-text editable title-target-4-5" contenteditable="true" oninput="syncTitleReverse('4', '5', this)">6.tob价格</div><div class="del-btn no-print" onclick="deleteItem('4', '5', event)">✕</div></div><div class="nav-item" data-panel="group4" data-row="item-4-6" id="nav-item-4-6"><div class="nav-item-text editable title-target-4-6" contenteditable="true" oninput="syncTitleReverse('4', '6', this)">7.视频+详情视频9/16+16/9</div><div class="del-btn no-print" onclick="deleteItem('4', '6', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('4')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-5"><div class="nav-header" data-panel="group5"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('5', this)">库存检查</div><div class="del-btn no-print" onclick="deleteGroup('5', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-5"><div class="nav-item" data-panel="group5" data-row="item-5-0" id="nav-item-5-0"><div class="nav-item-text editable title-target-5-0" contenteditable="true" oninput="syncTitleReverse('5', '0', this)">1.upseller库存</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('5', '0', event)">✕</div></div><div class="nav-item" data-panel="group5" data-row="item-5-1" id="nav-item-5-1"><div class="nav-item-text editable title-target-5-1" contenteditable="true" oninput="syncTitleReverse('5', '1', this)">2.站内库存</div><div class="del-btn no-print" onclick="deleteItem('5', '1', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('5')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-6"><div class="nav-header" data-panel="group6"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('6', this)">活动折扣参加</div><div class="del-btn no-print" onclick="deleteGroup('6', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-6"><div class="nav-item" data-panel="group6" data-row="item-6-0" id="nav-item-6-0"><div class="nav-item-text editable title-target-6-0" contenteditable="true" oninput="syncTitleReverse('6', '0', this)">1.CI内部活动</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('6', '0', event)">✕</div></div><div class="nav-item" data-panel="group6" data-row="item-6-1" id="nav-item-6-1"><div class="nav-item-text editable title-target-6-1" contenteditable="true" oninput="syncTitleReverse('6', '1', this)">2.补贴活动</div><div class="del-btn no-print" onclick="deleteItem('6', '1', event)">✕</div></div><div class="nav-item" data-panel="group6" data-row="item-6-2" id="nav-item-6-2"><div class="nav-item-text editable title-target-6-2" contenteditable="true" oninput="syncTitleReverse('6', '2', this)">3.自创活动</div><div class="del-btn no-print" onclick="deleteItem('6', '2', event)">✕</div></div><div class="nav-item" data-panel="group6" data-row="item-6-3" id="nav-item-6-3"><div class="nav-item-text editable title-target-6-3" contenteditable="true" oninput="syncTitleReverse('6', '3', this)">4.活动巡检-月初-月中 月末</div><div class="del-btn no-print" onclick="deleteItem('6', '3', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('6')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-7"><div class="nav-header" data-panel="group7"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('7', this)">粉丝页面</div><div class="del-btn no-print" onclick="deleteGroup('7', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-7"><div class="nav-item" data-panel="group7" data-row="item-7-0" id="nav-item-7-0"><div class="nav-item-text editable title-target-7-0" contenteditable="true" oninput="syncTitleReverse('7', '0', this)">1.曝光推广</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('7', '0', event)">✕</div></div><div class="nav-item" data-panel="group7" data-row="item-7-1" id="nav-item-7-1"><div class="nav-item-text editable title-target-7-1" contenteditable="true" oninput="syncTitleReverse('7', '1', this)">2.促销推广</div><div class="del-btn no-print" onclick="deleteItem('7', '1', event)">✕</div></div><div class="nav-item" data-panel="group7" data-row="item-7-2" id="nav-item-7-2"><div class="nav-item-text editable title-target-7-2" contenteditable="true" oninput="syncTitleReverse('7', '2', this)">3.新人关注5%优惠券</div><div class="del-btn no-print" onclick="deleteItem('7', '2', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('7')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-8"><div class="nav-header" data-panel="group8"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('8', this)">店铺主页面优化</div><div class="del-btn no-print" onclick="deleteGroup('8', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-8"><div class="nav-item" data-panel="group8" data-row="item-8-0" id="nav-item-8-0"><div class="nav-item-text editable title-target-8-0" contenteditable="true" oninput="syncTitleReverse('8', '0', this)">1.热品添加</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('8', '0', event)">✕</div></div><div class="nav-item" data-panel="group8" data-row="item-8-1" id="nav-item-8-1"><div class="nav-item-text editable title-target-8-1" contenteditable="true" oninput="syncTitleReverse('8', '1', this)">2.活动图更新</div><div class="del-btn no-print" onclick="deleteItem('8', '1', event)">✕</div></div><div class="nav-item" data-panel="group8" data-row="item-8-2" id="nav-item-8-2"><div class="nav-item-text editable title-target-8-2" contenteditable="true" oninput="syncTitleReverse('8', '2', this)">3.页面排版+关注竞品店铺主页内置更新</div><div class="del-btn no-print" onclick="deleteItem('8', '2', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('8')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-9"><div class="nav-header" data-panel="group9"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('9', this)">产品异常排查</div><div class="del-btn no-print" onclick="deleteGroup('9', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-9"><div class="nav-item" data-panel="group9" data-row="item-9-0" id="nav-item-9-0"><div class="nav-item-text editable title-target-9-0" contenteditable="true" oninput="syncTitleReverse('9', '0', this)">1.尺寸异常</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('9', '0', event)">✕</div></div><div class="nav-item" data-panel="group9" data-row="item-9-1" id="nav-item-9-1"><div class="nav-item-text editable title-target-9-1" contenteditable="true" oninput="syncTitleReverse('9', '1', this)">2.产品关联异常 elegire para comptri</div><div class="del-btn no-print" onclick="deleteItem('9', '1', event)">✕</div></div><div class="nav-item" data-panel="group9" data-row="item-9-2" id="nav-item-9-2"><div class="nav-item-text editable title-target-9-2" contenteditable="true" oninput="syncTitleReverse('9', '2', this)">3.价格异常</div><div class="del-btn no-print" onclick="deleteItem('9', '2', event)">✕</div></div><div class="nav-item" data-panel="group9" data-row="item-9-3" id="nav-item-9-3"><div class="nav-item-text editable title-target-9-3" contenteditable="true" oninput="syncTitleReverse('9', '3', this)">4.体验分数异常链接新创建</div><div class="del-btn no-print" onclick="deleteItem('9', '3', event)">✕</div></div><div class="nav-item" data-panel="group9" data-row="item-9-4" id="nav-item-9-4"><div class="nav-item-text editable title-target-9-4" contenteditable="true" oninput="syncTitleReverse('9', '4', this)">5.曝光分数异常</div><div class="del-btn no-print" onclick="deleteItem('9', '4', event)">✕</div></div><div class="nav-item" data-panel="group9" data-row="item-9-5" id="nav-item-9-5"><div class="nav-item-text editable title-target-9-5" contenteditable="true" oninput="syncTitleReverse('9', '5', this)">6.图片异常</div><div class="del-btn no-print" onclick="deleteItem('9', '5', event)">✕</div></div><div class="nav-item" data-panel="group9" data-row="item-9-6" id="nav-item-9-6"><div class="nav-item-text editable title-target-9-6" contenteditable="true" oninput="syncTitleReverse('9', '6', this)">7.库存异常</div><div class="del-btn no-print" onclick="deleteItem('9', '6', event)">✕</div></div><div class="nav-item" data-panel="group9" data-row="item-9-7" id="nav-item-9-7"><div class="nav-item-text editable title-target-9-7" contenteditable="true" oninput="syncTitleReverse('9', '7', this)">8.邮费异常</div><div class="del-btn no-print" onclick="deleteItem('9', '7', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('9')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-10"><div class="nav-header" data-panel="group10"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('10', this)">广告排查</div><div class="del-btn no-print" onclick="deleteGroup('10', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-10"><div class="nav-item" data-panel="group10" data-row="item-10-0" id="nav-item-10-0"><div class="nav-item-text editable title-target-10-0" contenteditable="true" oninput="syncTitleReverse('10', '0', this)">1.基础产品推广</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('10', '0', event)">✕</div></div><div class="nav-item" data-panel="group10" data-row="item-10-1" id="nav-item-10-1"><div class="nav-item-text editable title-target-10-1" contenteditable="true" oninput="syncTitleReverse('10', '1', this)">2.粉丝数量推广</div><div class="del-btn no-print" onclick="deleteItem('10', '1', event)">✕</div></div><div class="nav-item" data-panel="group10" data-row="item-10-2" id="nav-item-10-2"><div class="nav-item-text editable title-target-10-2" contenteditable="true" oninput="syncTitleReverse('10', '2', this)">3.搜索关键词推广</div><div class="del-btn no-print" onclick="deleteItem('10', '2', event)">✕</div></div><div class="nav-item" data-panel="group10" data-row="item-10-3" id="nav-item-10-3"><div class="nav-item-text editable title-target-10-3" contenteditable="true" oninput="syncTitleReverse('10', '3', this)">4.增/降预算的判断条件</div><div class="del-btn no-print" onclick="deleteItem('10', '3', event)">✕</div></div><div class="nav-item" data-panel="group10" data-row="item-10-4" id="nav-item-10-4"><div class="nav-item-text editable title-target-10-4" contenteditable="true" oninput="syncTitleReverse('10', '4', this)">5.Roas8%</div><div class="del-btn no-print" onclick="deleteItem('10', '4', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('10')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-11"><div class="nav-header" data-panel="group11"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('11', this)">普通+跟卖创建矩阵</div><div class="del-btn no-print" onclick="deleteGroup('11', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-11"><div class="nav-item" data-panel="group11" data-row="item-11-0" id="nav-item-11-0"><div class="nav-item-text editable title-target-11-0" contenteditable="true" oninput="syncTitleReverse('11', '0', this)">1.普通标题选择技巧</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('11', '0', event)">✕</div></div><div class="nav-item" data-panel="group11" data-row="item-11-1" id="nav-item-11-1"><div class="nav-item-text editable title-target-11-1" contenteditable="true" oninput="syncTitleReverse('11', '1', this)">2.跟卖或取消卖分裂技巧</div><div class="del-btn no-print" onclick="deleteItem('11', '1', event)">✕</div></div><div class="nav-item" data-panel="group11" data-row="item-11-2" id="nav-item-11-2"><div class="nav-item-text editable title-target-11-2" contenteditable="true" oninput="syncTitleReverse('11', '2', this)">3.跟卖异常和跟卖正常区分</div><div class="del-btn no-print" onclick="deleteItem('11', '2', event)">✕</div></div><div class="nav-item" data-panel="group11" data-row="item-11-3" id="nav-item-11-3"><div class="nav-item-text editable title-target-11-3" contenteditable="true" oninput="syncTitleReverse('11', '3', this)">4.普通链接关联技巧</div><div class="del-btn no-print" onclick="deleteItem('11', '3', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('11')">+ 新增子标题</button></div></div><div class="nav-group collapsed" id="nav-group-12"><div class="nav-header" data-panel="group12"><span class="toggle">▼</span><div class="nav-title-text editable" contenteditable="true" oninput="syncGroupTitle('12', this)">数据统计报告</div><div class="del-btn no-print" onclick="deleteGroup('12', event)" style="margin-left:auto" title="删除大纲">✕</div></div><div class="nav-list" id="nav-list-12"><div class="nav-item" data-panel="group12" data-row="item-12-0" id="nav-item-12-0"><div class="nav-item-text editable title-target-12-0" contenteditable="true" oninput="syncTitleReverse('12', '0', this)">1.分析7-15-30-60GMV+销售速率统计</div><div class="del-btn no-print" style="display:none" onclick="deleteItem('12', '0', event)">✕</div></div><div class="nav-item" data-panel="group12" data-row="item-12-1" id="nav-item-12-1"><div class="nav-item-text editable title-target-12-1" contenteditable="true" oninput="syncTitleReverse('12', '1', this)">2.分析广告TACOS ROI</div><div class="del-btn no-print" onclick="deleteItem('12', '1', event)">✕</div></div><div class="nav-item" data-panel="group12" data-row="item-12-2" id="nav-item-12-2"><div class="nav-item-text editable title-target-12-2" contenteditable="true" oninput="syncTitleReverse('12', '2', this)">3.曝光 点击 转化率 基础对比报告</div><div class="del-btn no-print" onclick="deleteItem('12', '2', event)">✕</div></div><div class="nav-item" data-panel="group12" data-row="item-12-3" id="nav-item-12-3"><div class="nav-item-text editable title-target-12-3" contenteditable="true" oninput="syncTitleReverse('12', '3', this)">4.基础excel常识</div><div class="del-btn no-print" onclick="deleteItem('12', '3', event)">✕</div></div><div class="nav-item" data-panel="group12" data-row="item-12-4" id="nav-item-12-4"><div class="nav-item-text editable title-target-12-4" contenteditable="true" oninput="syncTitleReverse('12', '4', this)">5.广告投资回报率</div><div class="del-btn no-print" onclick="deleteItem('12', '4', event)">✕</div></div><div class="nav-item" data-panel="group12" data-row="item-12-5" id="nav-item-12-5"><div class="nav-item-text editable title-target-12-5" contenteditable="true" oninput="syncTitleReverse('12', '5', this)">6.产品投诉统计</div><div class="del-btn no-print" onclick="deleteItem('12', '5', event)">✕</div></div><button class="btn-outline no-print" onclick="addItem('12')">+ 新增子标题</button></div></div></div>
     </aside>
@@ -122,7 +130,7 @@ button{border:none;background:#0f766e;color:#fff;padding:10px 14px;border-radius
   <button class="btn-delete-group" data-group-index="" style="display:none">删除本大纲</button>
 </div><div><div class="panel-tag">默认显示</div><h2 class="editable" contenteditable="true">美客多巴西站运营培训SOP</h2></div></div><div class="panel-desc editable" contenteditable="true">适用于 Mercado Libre 巴西站运营培训与流程指引。</div><div class="hero-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传封面图</div></div></section><section class="content-card" id="panel-group0"><div class="panel-top"><div><div class="panel-tag">栏目 1</div><h2 class="editable group-title-target-0" contenteditable="true" oninput="syncGroupTitleReverse('0', this)">常用的产品页面介绍</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-0"><div class="section-row" id="item-0-0"><div class="del-row-btn no-print" onclick="deleteItem('0', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '0', this)">1.产品概览</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-0-1"><div class="del-row-btn no-print" onclick="deleteItem('0', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '1', this)">2.产品客服页面</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-0-2"><div class="del-row-btn no-print" onclick="deleteItem('0', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '2', this)">3.消息页面</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-0-3"><div class="del-row-btn no-print" onclick="deleteItem('0', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '3', this)">4.订单页面</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-0-4"><div class="del-row-btn no-print" onclick="deleteItem('0', '4')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '4', this)">5.产品listing页面</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-0-5"><div class="del-row-btn no-print" onclick="deleteItem('0', '5')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '5', this)">6.产品活动页面</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-0-6"><div class="del-row-btn no-print" onclick="deleteItem('0', '6')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '6', this)">7.官方客服页面</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-0-7"><div class="del-row-btn no-print" onclick="deleteItem('0', '7')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('0', '7', this)">8.产品指标页面</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('0')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group1"><div class="panel-top"><div><div class="panel-tag">栏目 2</div><h2 class="editable group-title-target-1" contenteditable="true" oninput="syncGroupTitleReverse('1', this)">产品上架</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-1"><div class="section-row" id="item-1-0"><div class="del-row-btn no-print" onclick="deleteItem('1', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('1', '0', this)">1.产品站内基础上架</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-1-1"><div class="del-row-btn no-print" onclick="deleteItem('1', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('1', '1', this)">2.upseller产品上架</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('1')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group2"><div class="panel-top"><div><div class="panel-tag">栏目 3</div><h2 class="editable group-title-target-2" contenteditable="true" oninput="syncGroupTitleReverse('2', this)">价格校准</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-2"><div class="section-row" id="item-2-0"><div class="del-row-btn no-print" onclick="deleteItem('2', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('2', '0', this)">1.优质价格</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-2-1"><div class="del-row-btn no-print" onclick="deleteItem('2', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('2', '1', this)">2.经典价格</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('2')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group3"><div class="panel-top"><div><div class="panel-tag">栏目 4</div><h2 class="editable group-title-target-3" contenteditable="true" oninput="syncGroupTitleReverse('3', this)">普通链接优化</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-3"><div class="section-row" id="item-3-0"><div class="del-row-btn no-print" onclick="deleteItem('3', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('3', '0', this)">1.标题 60字符</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-3-1"><div class="del-row-btn no-print" onclick="deleteItem('3', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('3', '1', this)">2.图片：主图+介绍图</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-3-2"><div class="del-row-btn no-print" onclick="deleteItem('3', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('3', '2', this)">3.关键词 modele</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-3-3"><div class="del-row-btn no-print" onclick="deleteItem('3', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('3', '3', this)">4.参数</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-3-4"><div class="del-row-btn no-print" onclick="deleteItem('3', '4')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('3', '4', this)">5.简介</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-3-5"><div class="del-row-btn no-print" onclick="deleteItem('3', '5')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('3', '5', this)">6.tob价格</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-3-6"><div class="del-row-btn no-print" onclick="deleteItem('3', '6')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('3', '6', this)">7.视频</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('3')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group4"><div class="panel-top"><div><div class="panel-tag">栏目 5</div><h2 class="editable group-title-target-4" contenteditable="true" oninput="syncGroupTitleReverse('4', this)">跟卖链接优化</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-4"><div class="section-row" id="item-4-0"><div class="del-row-btn no-print" onclick="deleteItem('4', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('4', '0', this)">1.标题 200字符</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-4-1"><div class="del-row-btn no-print" onclick="deleteItem('4', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('4', '1', this)">2.图片：主图+介绍图+详情页图片+视频图</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-4-2"><div class="del-row-btn no-print" onclick="deleteItem('4', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('4', '2', this)">3.关键词 modele</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-4-3"><div class="del-row-btn no-print" onclick="deleteItem('4', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('4', '3', this)">4.参数</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-4-4"><div class="del-row-btn no-print" onclick="deleteItem('4', '4')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('4', '4', this)">5.简介</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-4-5"><div class="del-row-btn no-print" onclick="deleteItem('4', '5')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('4', '5', this)">6.tob价格</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-4-6"><div class="del-row-btn no-print" onclick="deleteItem('4', '6')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('4', '6', this)">7.视频+详情视频9/16+16/9</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('4')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group5"><div class="panel-top"><div><div class="panel-tag">栏目 6</div><h2 class="editable group-title-target-5" contenteditable="true" oninput="syncGroupTitleReverse('5', this)">库存检查</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-5"><div class="section-row" id="item-5-0"><div class="del-row-btn no-print" onclick="deleteItem('5', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('5', '0', this)">1.upseller库存</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-5-1"><div class="del-row-btn no-print" onclick="deleteItem('5', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('5', '1', this)">2.站内库存</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('5')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group6"><div class="panel-top"><div><div class="panel-tag">栏目 7</div><h2 class="editable group-title-target-6" contenteditable="true" oninput="syncGroupTitleReverse('6', this)">活动折扣参加</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-6"><div class="section-row" id="item-6-0"><div class="del-row-btn no-print" onclick="deleteItem('6', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('6', '0', this)">1.CI内部活动</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-6-1"><div class="del-row-btn no-print" onclick="deleteItem('6', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('6', '1', this)">2.补贴活动</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-6-2"><div class="del-row-btn no-print" onclick="deleteItem('6', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('6', '2', this)">3.自创活动</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-6-3"><div class="del-row-btn no-print" onclick="deleteItem('6', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('6', '3', this)">4.活动巡检-月初-月中 月末</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('6')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group7"><div class="panel-top"><div><div class="panel-tag">栏目 8</div><h2 class="editable group-title-target-7" contenteditable="true" oninput="syncGroupTitleReverse('7', this)">粉丝页面</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-7"><div class="section-row" id="item-7-0"><div class="del-row-btn no-print" onclick="deleteItem('7', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('7', '0', this)">1.曝光推广</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-7-1"><div class="del-row-btn no-print" onclick="deleteItem('7', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('7', '1', this)">2.促销推广</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-7-2"><div class="del-row-btn no-print" onclick="deleteItem('7', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('7', '2', this)">3.新人关注5%优惠券</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('7')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group8"><div class="panel-top"><div><div class="panel-tag">栏目 9</div><h2 class="editable group-title-target-8" contenteditable="true" oninput="syncGroupTitleReverse('8', this)">店铺主页面优化</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-8"><div class="section-row" id="item-8-0"><div class="del-row-btn no-print" onclick="deleteItem('8', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('8', '0', this)">1.热品添加</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-8-1"><div class="del-row-btn no-print" onclick="deleteItem('8', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('8', '1', this)">2.活动图更新</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-8-2"><div class="del-row-btn no-print" onclick="deleteItem('8', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('8', '2', this)">3.页面排版+关注竞品店铺主页内置更新</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('8')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group9"><div class="panel-top"><div><div class="panel-tag">栏目 10</div><h2 class="editable group-title-target-9" contenteditable="true" oninput="syncGroupTitleReverse('9', this)">产品异常排查</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-9"><div class="section-row" id="item-9-0"><div class="del-row-btn no-print" onclick="deleteItem('9', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '0', this)">1.尺寸异常</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-9-1"><div class="del-row-btn no-print" onclick="deleteItem('9', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '1', this)">2.产品关联异常 elegire para comptri</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-9-2"><div class="del-row-btn no-print" onclick="deleteItem('9', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '2', this)">3.价格异常</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-9-3"><div class="del-row-btn no-print" onclick="deleteItem('9', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '3', this)">4.体验分数异常链接新创建</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-9-4"><div class="del-row-btn no-print" onclick="deleteItem('9', '4')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '4', this)">5.曝光分数异常</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-9-5"><div class="del-row-btn no-print" onclick="deleteItem('9', '5')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '5', this)">6.图片异常</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-9-6"><div class="del-row-btn no-print" onclick="deleteItem('9', '6')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '6', this)">7.库存异常</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-9-7"><div class="del-row-btn no-print" onclick="deleteItem('9', '7')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('9', '7', this)">8.邮费异常</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('9')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group10"><div class="panel-top"><div><div class="panel-tag">栏目 11</div><h2 class="editable group-title-target-10" contenteditable="true" oninput="syncGroupTitleReverse('10', this)">广告排查</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-10"><div class="section-row" id="item-10-0"><div class="del-row-btn no-print" onclick="deleteItem('10', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('10', '0', this)">1.基础产品推广</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-10-1"><div class="del-row-btn no-print" onclick="deleteItem('10', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('10', '1', this)">2.粉丝数量推广</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-10-2"><div class="del-row-btn no-print" onclick="deleteItem('10', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('10', '2', this)">3.搜索关键词推广</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-10-3"><div class="del-row-btn no-print" onclick="deleteItem('10', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('10', '3', this)">4.增/降预算的判断条件</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-10-4"><div class="del-row-btn no-print" onclick="deleteItem('10', '4')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('10', '4', this)">5.Roas8%</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('10')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group11"><div class="panel-top"><div><div class="panel-tag">栏目 12</div><h2 class="editable group-title-target-11" contenteditable="true" oninput="syncGroupTitleReverse('11', this)">普通+跟卖创建矩阵</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-11"><div class="section-row" id="item-11-0"><div class="del-row-btn no-print" onclick="deleteItem('11', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('11', '0', this)">1.普通标题选择技巧</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-11-1"><div class="del-row-btn no-print" onclick="deleteItem('11', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('11', '1', this)">2.跟卖或取消卖分裂技巧</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-11-2"><div class="del-row-btn no-print" onclick="deleteItem('11', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('11', '2', this)">3.跟卖异常和跟卖正常区分</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-11-3"><div class="del-row-btn no-print" onclick="deleteItem('11', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('11', '3', this)">4.普通链接关联技巧</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('11')">+ 添加一页 (新子标题与截图)</button></section><section class="content-card" id="panel-group12"><div class="panel-top"><div><div class="panel-tag">栏目 13</div><h2 class="editable group-title-target-12" contenteditable="true" oninput="syncGroupTitleReverse('12', this)">数据统计报告</h2></div></div><div class="panel-desc editable" contenteditable="true">当前仅展示选中的子项内容。</div><div id="rows-container-12"><div class="section-row" id="item-12-0"><div class="del-row-btn no-print" onclick="deleteItem('12', '0')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('12', '0', this)">1.分析7-15-30-60GMV+销售速率统计</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-12-1"><div class="del-row-btn no-print" onclick="deleteItem('12', '1')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('12', '1', this)">2.分析广告TACOS ROI</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-12-2"><div class="del-row-btn no-print" onclick="deleteItem('12', '2')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('12', '2', this)">3.曝光 点击 转化率 基础对比报告</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-12-3"><div class="del-row-btn no-print" onclick="deleteItem('12', '3')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('12', '3', this)">4.基础excel常识</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-12-4"><div class="del-row-btn no-print" onclick="deleteItem('12', '4')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('12', '4', this)">5.广告投资回报率</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div><div class="section-row" id="item-12-5"><div class="del-row-btn no-print" onclick="deleteItem('12', '5')" title="删除这一页">✕</div><div class="img-box upload"><input type="file" accept="image/*" style="display:none"><div>点击上传截图<br><span style="font-size:12px;color:#9ca3af">(16:9 / 1:1)</span></div></div><div class="text-box"><div class="item-title editable" contenteditable="true" oninput="syncTitle('12', '5', this)">6.产品投诉统计</div><div class="editable" contenteditable="true" data-placeholder="在这里填写操作步骤、注意事项等说明..."></div></div></div></div><button class="btn-add-page no-print" onclick="addItem('12')">+ 添加一页 (新子标题与截图)</button></section></main>
 </div></div>
-<div class="float-menu no-print"><button onclick="location.reload()" title="回到首页并刷新">🏠</button><button onclick="saveAll()" title="手动保存数据">💾</button></div>
+<div class="float-menu no-print"><button onclick="location.reload()" title="回到首页并刷新">🏠</button><button onclick="handleSaveButton()" title="编辑权限">✎</button></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -132,11 +140,15 @@ const SUPABASE_URL='https://begfyschfspuxypqppnv.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_BSuJWnuxhGHJt0qwSY4d8g_vjSIUwTM';
 const SUPABASE_BUCKET='sop-media';
 const SUPABASE_PROJECT_KEY='mercado-sop-training-index';
+const EDIT_PASSWORD='SOP2026';
+const DEFAULT_MEDIA_SLOTS=2;
+const MAX_MEDIA_SLOTS=10;
 
 const hasSupabaseConfig = /^https:\/\/.+\.supabase\.co$/.test(SUPABASE_URL) && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
 const sopDb = hasSupabaseConfig && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let cloudSaveTimer = null;
 let cloudLoading = false;
+let canEdit = sessionStorage.getItem('sop_can_edit') === '1';
 
 let globalGroupCount = 0;
 let globalItemCount = 0;
@@ -153,9 +165,14 @@ function collectSopData(){
 }
 
 function saveAll(){
+  if(!canEdit) return;
   const data = collectSopData();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   queueCloudSave(data);
+}
+
+function saveLocalOnly(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(collectSopData()));
 }
 
 function loadAll(){
@@ -327,24 +344,153 @@ async function uploadImageToCloud(box, file){
 }
 
 async function handleImageFile(box, file){
+  if(!canEdit){ requestEditAccess(); return; }
   if(!box || !file) return;
   box.dataset.uploading = '1';
   try{
-    const src = await uploadImageToCloud(box, file) || await readFileAsDataUrl(file);
-    setImage(box, src);
+    const localSrc = await readFileAsDataUrl(file);
+    setImage(box, localSrc);
+    bindZoomEvents();
+    saveLocalOnly();
+    const src = await uploadImageToCloud(box, file);
+    if(src) setImage(box, src);
+    bindZoomEvents();
     saveAll();
   }catch(error){
-    console.warn('Image upload failed, using local fallback:', error.message);
-    const src = await readFileAsDataUrl(file);
-    setImage(box, src);
+    console.warn('Image cloud sync failed:', error.message);
+    if(!box.querySelector('img')){
+      const src = await readFileAsDataUrl(file);
+      setImage(box, src);
+      bindZoomEvents();
+    }
     saveAll();
-    alert('图片已先保存到本地浏览器，云端上传失败。请检查 Supabase 配置和 Storage 权限。');
   }finally{
     delete box.dataset.uploading;
   }
 }
 
-function setImage(box,src){ box.innerHTML='<img src="'+src+'" alt="uploaded" style="width:100%;height:100%;object-fit:contain;border-radius:14px" />'; }
+function requestEditAccess(){
+  if(canEdit) return true;
+  const password = prompt('请输入编辑密码');
+  if(password === EDIT_PASSWORD){
+    canEdit = true;
+    sessionStorage.setItem('sop_can_edit','1');
+    applyEditMode();
+    bindAllEvents();
+    return true;
+  }
+  if(password !== null) alert('密码不正确，当前保持只读模式。');
+  return false;
+}
+
+function applyEditMode(){
+  document.body.classList.toggle('can-edit', canEdit);
+  document.querySelectorAll('.btn-outline,.btn-add-page,.del-btn,.del-row-btn,.btn-copy,.btn-delete,.btn-delete-group').forEach(el=>{
+    el.classList.add('no-edit');
+  });
+  document.querySelectorAll('[contenteditable="true"]').forEach(el=>{
+    el.dataset.editableOriginal = 'true';
+    if(canEdit){
+      el.removeAttribute('contenteditable');
+    }else{
+      el.removeAttribute('contenteditable');
+    }
+  });
+}
+
+function enterTextEdit(el){
+  if(!canEdit && !requestEditAccess()) return;
+  el.setAttribute('contenteditable','true');
+  el.classList.add('editable');
+  el.focus();
+}
+
+function bindTextEditing(){
+  document.querySelectorAll('.editable,.nav-title-text,.nav-item-text,.item-title,.panel-desc,.panel h2').forEach(el=>{
+    if(el.dataset.textEditBound === '1') return;
+    el.dataset.textEditBound = '1';
+    el.removeAttribute('contenteditable');
+    el.addEventListener('click', e=>{
+      if(e.detail >= 3){
+        e.preventDefault();
+        e.stopPropagation();
+        enterTextEdit(el);
+      }
+    });
+    el.addEventListener('input', saveAll);
+    el.addEventListener('blur', ()=>{
+      el.removeAttribute('contenteditable');
+      saveAll();
+    });
+  });
+}
+
+function emptyMediaSlot(slot){
+  if(!slot) return;
+  const index = slot.dataset.slotIndex || '1';
+  slot.classList.remove('has-image');
+  slot.dataset.slotIndex = index;
+  slot.innerHTML = `<input type="file" accept="image/*" style="display:none">${mediaPlaceholderHtml(index)}<button type="button" class="media-remove no-edit" title="删除上传框">×</button>`;
+}
+
+function removeMediaSlot(slot){
+  if(!canEdit && !requestEditAccess()) return;
+  const grid = slot?.closest('.media-grid');
+  if(!grid) return;
+  const slots = grid.querySelectorAll('.media-slot');
+  if(slots.length <= DEFAULT_MEDIA_SLOTS){
+    emptyMediaSlot(slot);
+  }else{
+    slot.remove();
+    normalizeMediaGrid(grid);
+  }
+  bindAllEvents();
+  saveAll();
+}
+
+function normalizeMediaGrid(grid){
+  if(!grid) return;
+  let slots = Array.from(grid.querySelectorAll('.media-slot'));
+  while(slots.length > MAX_MEDIA_SLOTS){
+    slots.pop().remove();
+    slots = Array.from(grid.querySelectorAll('.media-slot'));
+  }
+  slots.forEach((slot,index)=>{
+    const slotIndex = String(index + 1);
+    slot.dataset.slotIndex = slotIndex;
+    if(!slot.querySelector('img')){
+      slot.innerHTML = `<input type="file" accept="image/*" style="display:none">${mediaPlaceholderHtml(slotIndex)}<button type="button" class="media-remove no-edit" title="删除上传框">×</button>`;
+      slot.classList.remove('has-image');
+    }
+  });
+  const addBtn = grid.querySelector('.media-add');
+  if(addBtn) addBtn.style.display = slots.length >= MAX_MEDIA_SLOTS ? 'none' : '';
+}
+
+function trimInitialEmptyMediaSlots(){
+  document.querySelectorAll('.media-grid').forEach(grid=>{
+    let slots = Array.from(grid.querySelectorAll('.media-slot'));
+    for(let i = slots.length - 1; i >= DEFAULT_MEDIA_SLOTS; i--){
+      if(!slots[i].querySelector('img')) slots[i].remove();
+    }
+    normalizeMediaGrid(grid);
+  });
+}
+
+async function forceCloudSync(){
+  if(!canEdit && !requestEditAccess()) return;
+  const data = collectSopData();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  await saveCloudData(data);
+}
+
+async function handleSaveButton(){
+  if(!canEdit){
+    requestEditAccess();
+    return;
+  }
+  alert('已开启编辑权限，修改后会自动同步。');
+}
 
 // 生成一行新步骤的 HTML
 function generateRowHtml(gi, ii, titleName="新步骤") {
@@ -363,6 +509,7 @@ function generateRowHtml(gi, ii, titleName="新步骤") {
 
 // 添加新大纲（大类）
 function addGroup() {
+    if(!canEdit && !requestEditAccess()) return;
     globalGroupCount++;
     const gi = 'newG' + globalGroupCount;
     const groupName = "新增大纲栏目";
@@ -401,6 +548,7 @@ function addGroup() {
 
 // 添加子项（子标题+整页）
 function addItem(gi) {
+    if(!canEdit && !requestEditAccess()) return;
     globalItemCount++;
     const ii = 'newI' + globalItemCount;
     const itemName = "新加页面";
@@ -452,6 +600,7 @@ function addItem(gi) {
 // 删除功能
 function deleteGroup(gi, e) {
     if(e) e.stopPropagation();
+    if(!canEdit && !requestEditAccess()) return;
     if(confirm('确定要删除这个大纲以及里面的所有页面吗？')) {
         $$(`#nav-group-${gi}`)?.remove();
         $$(`#panel-group${gi}`)?.remove();
@@ -461,6 +610,7 @@ function deleteGroup(gi, e) {
 }
 function deleteItem(gi, ii, e) {
     if(e) e.stopPropagation();
+    if(!canEdit && !requestEditAccess()) return;
     if(confirm('确定要删除这一页吗？')) {
         $$(`#nav-item-${gi}-${ii}`)?.remove();
         $$(`#item-${gi}-${ii}`)?.remove();
@@ -489,6 +639,7 @@ function getIdsFromButton(btn){
 }
 
 function duplicatePage(btn){
+  if(!canEdit && !requestEditAccess()) return;
   // 这里改成: 在当前大纲下新增一页 "空白页"，不继承现有内容
   const info = getIdsFromButton(btn);
   if(!info.gi) return;
@@ -542,6 +693,7 @@ function duplicatePage(btn){
 }
 
 function deletePage(btn){
+  if(!canEdit && !requestEditAccess()) return;
   if(!confirm('确定要删除这一页吗？')) return;
   const info = getIdsFromButton(btn);
   if(!info.gi) return;
@@ -558,15 +710,17 @@ function bindAllEvents() {
     $$('#nav-container').parentNode.replaceChild(newNav, $$('#nav-container'));
     const newPanel = $$('#panel-container').cloneNode(true);
     $$('#panel-container').parentNode.replaceChild(newPanel, $$('#panel-container'));
-    newPanel.querySelectorAll('[data-bound],[data-upload-bound],[data-dbl-bound]').forEach(el=>{
+    newPanel.querySelectorAll('[data-bound],[data-upload-bound],[data-dbl-bound],[data-text-edit-bound]').forEach(el=>{
       delete el.dataset.bound;
       delete el.dataset.uploadBound;
       delete el.dataset.dblBound;
+      delete el.dataset.textEditBound;
     });
-    newNav.querySelectorAll('[data-bound],[data-upload-bound],[data-dbl-bound]').forEach(el=>{
+    newNav.querySelectorAll('[data-bound],[data-upload-bound],[data-dbl-bound],[data-text-edit-bound]').forEach(el=>{
       delete el.dataset.bound;
       delete el.dataset.uploadBound;
       delete el.dataset.dblBound;
+      delete el.dataset.textEditBound;
     });
 
     // 重新绑定交互
@@ -640,13 +794,16 @@ function bindAllEvents() {
       input.addEventListener('change',e=>{ const file=e.target.files[0]; if(!file) return; handleImageFile(box,file); });
     });
 
-    $$$('[contenteditable="true"]').forEach(el=>el.addEventListener('input',saveAll));
+    bindTextEditing();
+    applyEditMode();
 }
 async function initDefault() {
     const loadedFromCloud = await loadCloudData();
     if(!loadedFromCloud && !loadAll()) {
         bindAllEvents(); // 首次绑定
     }
+    trimInitialEmptyMediaSlots();
+    bindAllEvents();
 }
 
 function mediaPlaceholderHtml(index){
@@ -657,33 +814,35 @@ function mediaSlotHtml(index, src=''){
   return `
     <div class="img-box upload media-slot ${hasImage ? 'has-image' : ''}" data-slot-index="${index}">
       <input type="file" accept="image/*" style="display:none">
-      ${hasImage ? `<img src="${src}" alt="uploaded image"><button type="button" class="zoom-btn" title="放大查看">🔍</button>` : mediaPlaceholderHtml(index)}
+      ${hasImage ? `<img src="${src}" alt="uploaded image"><button type="button" class="media-remove no-edit" title="删除上传框">×</button><button type="button" class="zoom-btn" title="放大查看">🔍</button>` : `${mediaPlaceholderHtml(index)}<button type="button" class="media-remove no-edit" title="删除上传框">×</button>`}
     </div>`;
 }
 function setImage(box, src){
   if(!box) return;
   const index = box.dataset.slotIndex || '1';
   box.classList.add('has-image');
-  box.innerHTML = `<input type="file" accept="image/*" style="display:none"><img src="${src}" alt="uploaded image"><button type="button" class="zoom-btn" title="放大查看">🔍</button>`;
+  box.innerHTML = `<input type="file" accept="image/*" style="display:none"><img src="${src}" alt="uploaded image"><button type="button" class="media-remove no-edit" title="删除上传框">×</button><button type="button" class="zoom-btn" title="放大查看">🔍</button>`;
   box.dataset.slotIndex = index;
 }
 function addImageSlot(grid){
+  if(!canEdit && !requestEditAccess()) return;
   if(!grid) return;
   const slots = grid.querySelectorAll('.media-slot').length;
-  if(slots >= 8) return;
+  if(slots >= MAX_MEDIA_SLOTS) return;
   const addBtn = grid.querySelector('.media-add');
   if(addBtn){
     addBtn.insertAdjacentHTML('beforebegin', mediaSlotHtml(slots + 1));
+    normalizeMediaGrid(grid);
   }
 }
 function buildMediaGrid(existingSrc=''){
   const wrap = document.createElement('div');
   wrap.className = 'media-grid';
   let slotsHtml = '';
-  for(let i=1;i<=4;i++){
+  for(let i=1;i<=DEFAULT_MEDIA_SLOTS;i++){
     slotsHtml += mediaSlotHtml(i, i===1 ? existingSrc : '');
   }
-  slotsHtml += '<button type="button" class="media-add no-print" title="新增截图框">+ 添加截图框</button>';
+  slotsHtml += '<button type="button" class="media-add no-print no-edit" title="新增截图框">+ 添加截图框</button>';
   wrap.innerHTML = slotsHtml;
   return wrap;
 }
@@ -702,6 +861,7 @@ function upgradeRowMedia(row){
 }
 function enhanceAllRows(){
   document.querySelectorAll('.section-row').forEach(upgradeRowMedia);
+  document.querySelectorAll('.media-grid').forEach(normalizeMediaGrid);
 }
 const previewState = { scale:1, x:0, y:0, dragging:false, startX:0, startY:0 };
 function applyPreviewTransform(){
@@ -723,10 +883,20 @@ function closeImagePreview(){
   document.getElementById('image-preview-modal')?.classList.remove('show');
 }
 function bindZoomEvents(){
+  document.querySelectorAll('.media-remove').forEach(btn=>{
+    if(btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      removeMediaSlot(btn.closest('.media-slot'));
+    });
+  });
   document.querySelectorAll('.zoom-btn').forEach(btn=>{
     if(btn.dataset.bound === '1') return;
     btn.dataset.bound = '1';
     btn.addEventListener('click', e=>{
+      e.preventDefault();
       e.stopPropagation();
       const img = btn.closest('.media-slot')?.querySelector('img');
       if(img) openImagePreview(img.src);
@@ -736,6 +906,7 @@ function bindZoomEvents(){
     if(btn.dataset.bound === '1') return;
     btn.dataset.bound = '1';
     btn.addEventListener('click', e=>{
+      e.preventDefault();
       e.stopPropagation();
       addImageSlot(btn.closest('.media-grid'));
       bindAllEvents();
@@ -763,21 +934,23 @@ function bindUploadEvents(){
   document.querySelectorAll('.media-slot').forEach(slot=>{
     if(slot.dataset.uploadBound === '1') return;
     slot.dataset.uploadBound = '1';
-    const input = slot.querySelector('input[type="file"]');
     slot.addEventListener('click', e=>{
       const target = e.target;
-      if(target.classList.contains('zoom-btn') || target.closest('.zoom-btn')){
+      if(target.classList.contains('zoom-btn') || target.closest('.zoom-btn') || target.classList.contains('media-remove') || target.closest('.media-remove')){
         return;
       }
+      if(!canEdit && !requestEditAccess()) return;
+      const input = slot.querySelector('input[type="file"]');
       if(input){ input.click(); }
     });
-    if(input){
-      input.addEventListener('change',e=>{
+    slot.addEventListener('change',e=>{
+      const input = e.target;
+      if(input && input.matches('input[type="file"]')){
         const file = e.target.files && e.target.files[0];
         if(!file) return;
         handleImageFile(slot,file);
-      });
-    }
+      }
+    });
   });
 }
 
@@ -925,6 +1098,8 @@ function setupSidebarGroupDelete(groupIndex){
 
 
 function enableDoubleClickEdit(){
+  bindTextEditing();
+  return;
   // 左侧大纲组标题
   document.querySelectorAll('.nav-title-text').forEach(function(el){
     if(el.dataset.dblBound === '1') return;
