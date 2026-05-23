@@ -114,9 +114,9 @@ body:not(.can-edit) .media-slot:hover{border-color:#d1d5db;background:#fff}
 #zoom-reset-btn{background:#f59e0b!important;color:#111827!important;font-size:14px}
 #zoom-in-btn{background:#16a34a!important}
 #zoom-close-btn{background:#dc2626!important}
-.modal-canvas{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab}
+.modal-canvas{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;touch-action:none}
 .modal-canvas.dragging{cursor:grabbing}
-.modal-canvas img{max-width:none;max-height:none;transform-origin:center center;user-select:none;-webkit-user-drag:none}
+.modal-canvas img{max-width:none;max-height:none;transform-origin:center center;user-select:none;-webkit-user-drag:none;will-change:transform}
 .modal-tip{position:absolute;left:18px;bottom:16px;color:rgba(255,255,255,.78);font-size:13px;z-index:3}
 #sync-toast{position:fixed;right:24px;bottom:24px;z-index:10000;max-width:360px;padding:12px 16px;border-radius:12px;background:#111827;color:#fff;box-shadow:0 14px 40px rgba(15,23,42,.25);font-size:14px;line-height:1.5;display:none}
 #sync-toast.show{display:block}
@@ -1497,23 +1497,75 @@ function enhanceAllRows(){
   document.querySelectorAll('.section-row').forEach(upgradeRowMedia);
   document.querySelectorAll('.media-grid').forEach(normalizeMediaGrid);
 }
-const previewState = { scale:1, x:0, y:0, dragging:false, startX:0, startY:0 };
+const previewState = { scale:1, x:0, y:0, dragging:false, startX:0, startY:0, bound:false, pointerId:null };
 function applyPreviewTransform(){
   const img = document.getElementById('modal-preview-img');
   if(img) img.style.transform = `translate(${previewState.x}px, ${previewState.y}px) scale(${previewState.scale})`;
+}
+function resetPreviewTransform(){
+  previewState.scale = 1;
+  previewState.x = 0;
+  previewState.y = 0;
+  applyPreviewTransform();
+}
+function zoomPreview(delta){
+  previewState.scale = Math.max(0.4, Math.min(5, previewState.scale + delta));
+  applyPreviewTransform();
+}
+function endPreviewDrag(){
+  const canvas = document.getElementById('modal-canvas');
+  previewState.dragging = false;
+  previewState.pointerId = null;
+  canvas?.classList.remove('dragging');
+}
+function bindPreviewPanEvents(){
+  if(previewState.bound) return;
+  const canvas = document.getElementById('modal-canvas');
+  if(!canvas) return;
+  previewState.bound = true;
+  canvas.addEventListener('wheel', e=>{
+    if(!document.getElementById('image-preview-modal')?.classList.contains('show')) return;
+    e.preventDefault();
+    zoomPreview(e.deltaY < 0 ? 0.12 : -0.12);
+  }, { passive:false });
+  canvas.addEventListener('pointerdown', e=>{
+    if(!document.getElementById('image-preview-modal')?.classList.contains('show')) return;
+    if(e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    previewState.dragging = true;
+    previewState.pointerId = e.pointerId;
+    previewState.startX = e.clientX - previewState.x;
+    previewState.startY = e.clientY - previewState.y;
+    canvas.classList.add('dragging');
+    canvas.setPointerCapture?.(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e=>{
+    if(!previewState.dragging) return;
+    if(previewState.pointerId !== null && e.pointerId !== previewState.pointerId) return;
+    e.preventDefault();
+    previewState.x = e.clientX - previewState.startX;
+    previewState.y = e.clientY - previewState.startY;
+    applyPreviewTransform();
+  });
+  canvas.addEventListener('pointerup', e=>{
+    if(previewState.pointerId !== null && e.pointerId !== previewState.pointerId) return;
+    canvas.releasePointerCapture?.(e.pointerId);
+    endPreviewDrag();
+  });
+  canvas.addEventListener('pointercancel', endPreviewDrag);
+  canvas.addEventListener('lostpointercapture', endPreviewDrag);
 }
 function openImagePreview(src){
   const modal = document.getElementById('image-preview-modal');
   const img = document.getElementById('modal-preview-img');
   if(!modal || !img || !src) return;
+  bindPreviewPanEvents();
   img.src = src;
-  previewState.scale = 1;
-  previewState.x = 0;
-  previewState.y = 0;
-  applyPreviewTransform();
+  resetPreviewTransform();
   modal.classList.add('show');
 }
 function closeImagePreview(){
+  endPreviewDrag();
   document.getElementById('image-preview-modal')?.classList.remove('show');
 }
 function bindZoomEvents(){
@@ -1611,36 +1663,11 @@ document.addEventListener('keydown', e=>{
 });
 document.addEventListener('click', e=>{
   if(e.target.id === 'image-preview-modal' || e.target.id === 'zoom-close-btn') closeImagePreview();
-  if(e.target.id === 'zoom-in-btn'){ previewState.scale = Math.min(4, previewState.scale + 0.2); applyPreviewTransform(); }
-  if(e.target.id === 'zoom-out-btn'){ previewState.scale = Math.max(0.4, previewState.scale - 0.2); applyPreviewTransform(); }
-  if(e.target.id === 'zoom-reset-btn'){ previewState.scale = 1; previewState.x = 0; previewState.y = 0; applyPreviewTransform(); }
+  if(e.target.id === 'zoom-in-btn'){ zoomPreview(0.2); }
+  if(e.target.id === 'zoom-out-btn'){ zoomPreview(-0.2); }
+  if(e.target.id === 'zoom-reset-btn'){ resetPreviewTransform(); }
 });
-const modalCanvas = document.getElementById('modal-canvas');
-if(modalCanvas){
-  modalCanvas.addEventListener('wheel', e=>{
-    if(!document.getElementById('image-preview-modal')?.classList.contains('show')) return;
-    e.preventDefault();
-    previewState.scale = Math.max(0.4, Math.min(4, previewState.scale + (e.deltaY < 0 ? 0.12 : -0.12)));
-    applyPreviewTransform();
-  }, { passive:false });
-  modalCanvas.addEventListener('mousedown', e=>{
-    if(!document.getElementById('image-preview-modal')?.classList.contains('show')) return;
-    previewState.dragging = true;
-    previewState.startX = e.clientX - previewState.x;
-    previewState.startY = e.clientY - previewState.y;
-    modalCanvas.classList.add('dragging');
-  });
-  window.addEventListener('mousemove', e=>{
-    if(!previewState.dragging) return;
-    previewState.x = e.clientX - previewState.startX;
-    previewState.y = e.clientY - previewState.startY;
-    applyPreviewTransform();
-  });
-  window.addEventListener('mouseup', ()=>{
-    previewState.dragging = false;
-    modalCanvas.classList.remove('dragging');
-  });
-}
+document.addEventListener('DOMContentLoaded', bindPreviewPanEvents);
 
 
 function setupGroupDeleteButton(groupIndex){
